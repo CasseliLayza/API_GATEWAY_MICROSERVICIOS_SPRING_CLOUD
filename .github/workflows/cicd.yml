@@ -1,0 +1,37 @@
+name: CICD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build Project
+        run: mvn clean install -DskipTests
+      - name: login to docker hub
+        run: echo ${{secrets.DOCKER_HUB_ACCESS_TOKEN}} | docker login -u ${{secrets.DOCKER_HUB}} --password-stdin
+      - name: Build docker image
+        run: docker build -t casseli/gateway-server .
+      - name: Publish image to docker hub
+        run: docker push casseli/gateway-server:latest
+
+  deploy:
+    needs: build
+    runs-on: [self-hosted]
+    steps:
+      - name: Start deployment
+        run: |
+          cd ~/app
+          sudo docker compose down gateway-server
+          sudo docker rmi -f casseli/gateway-server
+          sudo docker compose up gateway-server -d
