@@ -34,7 +34,7 @@ spring:
             client-id: gateway-app
             client-secret: 12345
             authorized-grant-types: authorization_code
-            redirect-uri: http://gateway-server:8090/authorized
+            redirect-uri: http://127.0.0.1:8090/authorized
             scope:
               - openid
               - profile
